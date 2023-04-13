@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgis/postgis:15-3.3-alpine
+    container_name: db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - data:/var/lib/postgresql/data
+
+  web:
+    container_name: web
+    restart: on-failure
+    depends_on:
+      - db
+    build:
+      context: ../backend
+    ports:
+      - '8000:8000'
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: >
+      bash -c "
+        ./manage.py migrate &&
+        ./manage.py runserver 0.0.0.0:8000
+      "
+    healthcheck:
+      test: curl web:8000
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  data:

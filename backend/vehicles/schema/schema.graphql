@@ -1,0 +1,111 @@
+type Query {
+  """Show all Shifts"""
+  allShifts: [ListShiftType]
+
+  """Show all Vehicles"""
+  allVehicles: [VehicleType]
+
+  """Show a Shift with attached Vehicles and Swaps"""
+  shift(shiftId: ID): SingleShiftType
+
+  """Show a Swap with attached Vehicle"""
+  swap(shiftId: ID, vehicleId: ID): SwapType
+}
+
+type ListShiftType {
+  id: ID!
+  createdAt: DateTime!
+  swaps: [SwapType!]
+}
+
+"""
+The `DateTime` scalar type represents a DateTime
+value as specified by
+[iso8601](https://en.wikipedia.org/wiki/ISO_8601).
+"""
+scalar DateTime
+
+type SwapType {
+  id: ID!
+  shift: SingleShiftType!
+  vehicle: VehicleType!
+  completed: Boolean!
+  createdAt: DateTime!
+}
+
+type SingleShiftType {
+  id: ID!
+  createdAt: DateTime!
+  swaps: [SwapType!]
+  vehicles: [VehicleType]
+}
+
+type VehicleType {
+  id: ID!
+  licensePlate: String!
+  batteryLevel: Int!
+  inUse: Boolean!
+  model: String!
+
+  """"""
+  location: GeometryObjectType!
+  swaps: [SwapType!]!
+}
+
+"\n`GeometryObjectType` represents a pair of values:\n- Geometry `type`\n- Geometry `coordinates`\n"
+type GeometryObjectType {
+  type: String
+  coordinates: GenericScalar
+}
+
+"""
+The `GenericScalar` scalar type represents a generic
+GraphQL scalar value that could be:
+String, Boolean, Int, Float, List or Object.
+"""
+scalar GenericScalar
+
+type Mutation {
+  """Create Shift Automatically"""
+  createShiftAuto(args: CreateShiftAutoInput!): CreateShiftAuto
+
+  """Create empty Shift"""
+  createShiftManual: CreateShiftManual
+
+  """Add Vehicles to Shift"""
+  addVehiclesToShift(args: AddVehiclesToShiftInput!): AddVehiclesToShift
+
+  """Complete Swap for Vehicle in a Shift"""
+  completeSwap(args: CompleteSwapInput!): CompleteSwap
+}
+
+type CreateShiftAuto {
+  shift: SingleShiftType!
+}
+
+input CreateShiftAutoInput {
+  lat: Float
+  lon: Float
+}
+
+type CreateShiftManual {
+  shift: SingleShiftType!
+}
+
+type AddVehiclesToShift {
+  shift: SingleShiftType!
+}
+
+input AddVehiclesToShiftInput {
+  shiftId: ID
+  vehicleIds: [ID]
+}
+
+type CompleteSwap {
+  swap: SwapType!
+}
+
+input CompleteSwapInput {
+  shiftId: ID
+  vehicleId: ID
+}
